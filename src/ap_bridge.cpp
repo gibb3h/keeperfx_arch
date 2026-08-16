@@ -1,14 +1,27 @@
 #include "pre_inc.h"
 #include "ap_bridge.h"
+
+#include "ap_data.h"
 #include "Archipelago.h"
 #include "config_terrain.h"
 #include "frontmenu_ingame_tabs.h"
 #include "lua_triggers.h"
+#include <cstdio>
 #include <math.h>
 #include "post_inc.h"
 
+void RedirectStdoutToFile() {
+    FILE* fp;
+    // Redirects all future printf / stdout calls to ap_debug.log
+    freopen_s(&fp, "ap_debug.log", "w", stdout);
+    
+    // Disable buffering so errors write to disk immediately upon crashing
+    setvbuf(stdout, NULL, _IONBF, 0);
+}
+
 void ap_connect(char* ip, char* slot) {
 
+RedirectStdoutToFile();
     if(AP_IsInit())
     {
         AP_Shutdown();
@@ -21,6 +34,7 @@ void ap_connect(char* ip, char* slot) {
     AP_SetLocationCheckedCallback(ap_send);
 
     AP_Start();
+    ap_state_init(&g_ap_state);
 }
 
 void ap_recieve(int id, bool notify)
@@ -28,6 +42,7 @@ void ap_recieve(int id, bool notify)
 
 
     lua_on_item_received(id);
+    ap_state_update_items(&g_ap_state, id);
 
  //   pre lua version testing code   
  //   TbBool available = 1;
@@ -53,7 +68,7 @@ void ap_recieve(int id, bool notify)
 
 void ap_send(int id)
 {
-
+    ap_state_update_locations(&g_ap_state, id);
 
 }
 
@@ -88,6 +103,7 @@ ap_connect(ip, slot);
 void ap_bridge_location_check(int id)
 {
     AP_SendItem(id);
+    ap_state_update_locations(&g_ap_state, id);
 }
 
 #ifdef __cplusplus

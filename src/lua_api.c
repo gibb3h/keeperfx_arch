@@ -34,6 +34,7 @@
 #include "lua_api_sound.h"
 
 #include "ap_bridge.h"
+#include "ap_data.h"
 #include "post_inc.h"
 
 /**********************************************/
@@ -213,6 +214,42 @@ static int lua_Room_available_id(lua_State *L)
         set_room_available(i,rkind,can_be_available,is_available);
     }
     return 0;
+}
+
+static int lua_ap_get_items(lua_State *L)
+{
+
+int item_count = g_ap_state.items_count;
+int *items = g_ap_state.items_recieved;
+
+lua_newtable(L);
+
+for (int i = 0; i < item_count; i++)
+{
+  
+            lua_pushinteger(L, items[i]);
+            lua_rawseti(L, -2, i + 1);
+}
+
+    return 1; 
+}
+
+static int lua_ap_checked_locations(lua_State *L)
+{
+
+int location_count = g_ap_state.locations_count;
+int *locations = g_ap_state.checked_locations;
+
+lua_newtable(L);
+
+for (int i = 0; i < location_count; i++)
+{
+  
+            lua_pushinteger(L, locations[i]);
+            lua_rawseti(L, -2, i + 1);
+}
+
+    return 1; 
 }
 
 // passes location id to archipelago
@@ -2588,7 +2625,8 @@ static const luaL_Reg global_methods[] = {
 //Archipelago Commands
     {"SendLocation",                     lua_send_location                   },  
     {"RoomAvailableById",                lua_Room_available_id          }, 
-      
+    {"GetAPItems",                lua_ap_get_items          }, 
+    {"GetAPCheckedLocations",                lua_ap_checked_locations          }, 
 };
 /*
 static const luaL_Reg game_meta[] = {
