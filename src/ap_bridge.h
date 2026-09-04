@@ -6,7 +6,6 @@ void ap_recieve(int id, bool notify);
 void ap_send(int id);
 void ap_clear();
 int ap_getitem_type(int id);
-
 #ifdef __cplusplus
 extern "C" {
 #endif

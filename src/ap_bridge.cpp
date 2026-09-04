@@ -10,6 +10,9 @@
 #include <math.h>
 #include "post_inc.h"
 
+
+void ap_location_info_callback(std::vector<AP_NetworkItem> locations);
+
 void RedirectStdoutToFile() {
     FILE* fp;
     // Redirects all future printf / stdout calls to ap_debug.log
@@ -32,9 +35,10 @@ RedirectStdoutToFile();
     AP_SetItemClearCallback(ap_clear);
     AP_SetItemRecvCallback(ap_recieve);
     AP_SetLocationCheckedCallback(ap_send);
-
+    AP_SetLocationInfoCallback(ap_location_info_callback);
     AP_Start();
     ap_state_init(&g_ap_state);
+    ap_location_info_init();
 }
 
 void ap_recieve(int id, bool notify)
@@ -75,10 +79,25 @@ void ap_send(int id)
 void ap_clear()
 {
 
-
+    ap_location_info_clear();
 
 }
 
+void ap_location_info_callback(std::vector<AP_NetworkItem> locations)
+{
+    for (const AP_NetworkItem &info : locations)
+    {
+        ap_location_info_update(
+            info.item,
+            info.location,
+            info.player,
+            info.flags,
+            info.itemName.c_str(),
+            info.locationName.c_str(),
+            info.playerName.c_str()
+        );
+    }
+}
 
 // probably dont need this anymore, was used to get the first digit from received item ids: 1 = room, 2 = spell
 int ap_getitem_type(int id)

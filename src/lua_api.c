@@ -259,6 +259,45 @@ static int lua_send_location(lua_State *L)
     ap_bridge_location_check(location_id);
     return 0;
 }
+
+static int lua_ap_get_location_info(lua_State *L)
+{
+    long long location = luaL_checkinteger(L, 1);
+
+    const struct AP_LocationInfo *info =
+        ap_location_info_get(location);
+
+    if (info == NULL)
+    {
+        lua_pushnil(L);
+        return 1;
+    }
+
+    lua_newtable(L);
+
+    lua_pushinteger(L, info->item);
+    lua_setfield(L, -2, "item");
+
+    lua_pushinteger(L, info->location);
+    lua_setfield(L, -2, "location");
+
+    lua_pushinteger(L, info->player);
+    lua_setfield(L, -2, "player");
+
+    lua_pushinteger(L, info->flags);
+    lua_setfield(L, -2, "flags");
+
+    lua_pushstring(L, info->item_name);
+    lua_setfield(L, -2, "itemName");
+
+    lua_pushstring(L, info->location_name);
+    lua_setfield(L, -2, "locationName");
+
+    lua_pushstring(L, info->player_name);
+    lua_setfield(L, -2, "playerName");
+
+    return 1;
+}
 static int lua_Magic_available(lua_State *L)
 {
     struct PlayerRange player_range = luaL_checkPlayerRange(L, 1);
@@ -2682,6 +2721,7 @@ static const luaL_Reg global_methods[] = {
     {"RoomAvailableById",                lua_Room_available_id}, 
     {"GetAPItems",                       lua_ap_get_items}, 
     {"GetAPCheckedLocations",            lua_ap_checked_locations}, 
+    {"GetAPLocationInfo",                lua_ap_get_location_info},
 };
 /*
 static const luaL_Reg game_meta[] = {
