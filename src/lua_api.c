@@ -217,36 +217,32 @@ static int lua_Room_available_id(lua_State *L)
 
 static int lua_ap_get_items(lua_State *L)
 {
+    int item_count = g_ap_state.items_count;
+    int *items = g_ap_state.items_recieved;
 
-int item_count = g_ap_state.items_count;
-int *items = g_ap_state.items_recieved;
+    lua_newtable(L);
 
-lua_newtable(L);
-
-for (int i = 0; i < item_count; i++)
-{
-
-            lua_pushinteger(L, items[i]);
-            lua_rawseti(L, -2, i + 1);
-}
+    for (int i = 0; i < item_count; i++)
+    {
+        lua_pushinteger(L, items[i]);
+        lua_rawseti(L, -2, i + 1);
+    }
 
     return 1; 
 }
 
 static int lua_ap_checked_locations(lua_State *L)
 {
+    int location_count = g_ap_state.locations_count;
+    int *locations = g_ap_state.checked_locations;
 
-int location_count = g_ap_state.locations_count;
-int *locations = g_ap_state.checked_locations;
+    lua_newtable(L);
 
-lua_newtable(L);
-
-for (int i = 0; i < location_count; i++)
-{
-
-            lua_pushinteger(L, locations[i]);
-            lua_rawseti(L, -2, i + 1);
-}
+    for (int i = 0; i < location_count; i++)
+    {
+        lua_pushinteger(L, locations[i]);
+        lua_rawseti(L, -2, i + 1);
+    }
 
     return 1; 
 }
@@ -254,9 +250,48 @@ for (int i = 0; i < location_count; i++)
 // passes location id to archipelago
 static int lua_send_location(lua_State *L)
 {
-    int location_id          = lua_tointeger(L, 1);
+    int location_id = lua_tointeger(L, 1);
 
     ap_bridge_location_check(location_id);
+    return 0;
+}
+
+static int lua_ap_bridge_scout_locations(lua_State *L)
+{
+    luaL_checktype(L, 1, LUA_TTABLE);
+
+    int count = (int)lua_objlen(L, 1);
+
+    int *locations = NULL;
+
+    if (count > 0)
+    {
+        locations = malloc(count * sizeof(*locations));
+
+        if (locations == NULL)
+            return luaL_error(L, "Failed to allocate location list");
+    }
+
+    for (int i = 0; i < count; i++)
+    {
+        lua_rawgeti(L, 1, i + 1);
+
+        if (!lua_isnumber(L, -1))
+        {
+            lua_pop(L, 1);
+            free(locations);
+            return luaL_error(L, "Location list contains a non-number");
+        }
+
+        locations[i] = (int)lua_tointeger(L, -1);
+
+        lua_pop(L, 1);
+    }
+
+    ap_bridge_scout_locations(locations, count);
+
+    free(locations);
+
     return 0;
 }
 
@@ -2722,6 +2757,7 @@ static const luaL_Reg global_methods[] = {
     {"GetAPItems",                       lua_ap_get_items}, 
     {"GetAPCheckedLocations",            lua_ap_checked_locations}, 
     {"GetAPLocationInfo",                lua_ap_get_location_info},
+    {"APScoutLocations",                 lua_ap_bridge_scout_locations},
 };
 /*
 static const luaL_Reg game_meta[] = {

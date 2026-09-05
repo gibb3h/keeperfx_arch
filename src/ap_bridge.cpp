@@ -99,6 +99,21 @@ void ap_location_info_callback(std::vector<AP_NetworkItem> locations)
     }
 }
 
+void ap_bridge_scout_locations(const int *locations, int count)
+{
+    std::set<int64_t> location_set;
+
+    for (int i = 0; i < count; i++)
+    {
+        location_set.insert((int64_t)locations[i]);
+    }
+
+    if (!location_set.empty())
+    {
+        AP_SendLocationScouts(location_set, 0);
+    }
+}
+
 // probably dont need this anymore, was used to get the first digit from received item ids: 1 = room, 2 = spell
 int ap_getitem_type(int id)
 {

@@ -12,6 +12,7 @@ extern "C" {
 
 void ap_bridge_connect(char* ip, char* slot);
 void ap_bridge_location_check(int id);
+void ap_bridge_scout_locations(const int *locations, int count);
 
 #ifdef __cplusplus
 }
