@@ -19,7 +19,11 @@ function SentLocations.Add(id)
 end
 
 function SentLocations.Has(id)
-    return SentLocations[id] == true
+    local sentLocations = GetAPCheckedLocations() or nil
+    if sentLocations == nil then
+        return false
+    end
+    return sentLocations[id] ~= nil -- Return the result of does ID exist in sentLocations ?
 end
 
 function SentLocations.CountFound(mapBoxIDs)
