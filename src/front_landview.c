@@ -200,15 +200,17 @@ static void landview_update_textbox_text(void)
 
 static void landview_textbox_geometry(struct ScrollBoxGeom *geo)
 {
-    long width = scale_value_landview(LANDVIEW_TEXTBOX_WIDTH);
-    long close_width = scale_value_landview(30);
-    long close_height = scale_value_landview(24);
+    
+    int32_t width = scale_value_landview(campaign.level_description_geo != NULL ? campaign.level_description_geo->width : LANDVIEW_TEXTBOX_WIDTH);
+    int lines = campaign.level_description_geo != NULL ? campaign.level_description_geo->lines : LANDVIEW_TEXTBOX_LINES;
+    int32_t close_width = scale_value_landview(30);
+    int32_t close_height = scale_value_landview(24);
 
     // First pass gives the sizes, which are needed to align the box on screen
-    scroll_box_geometry_at(0, 0, width, LANDVIEW_TEXTBOX_LINES, true, geo);
-    long pos_x = (lbDisplay.PhysicalScreenWidth - geo->up_arrow.right) / 2;
-    long pos_y = lbDisplay.PhysicalScreenHeight - geo->height - scale_value_landview(LANDVIEW_TEXTBOX_MARGIN);
-    scroll_box_geometry_at(pos_x, pos_y, width, LANDVIEW_TEXTBOX_LINES, true, geo);
+    scroll_box_geometry_at(0, 0, width, lines, true, geo);
+    int32_t pos_x = campaign.level_description_geo != NULL ? campaign.level_description_geo->pos_x : (lbDisplay.PhysicalScreenWidth - geo->up_arrow.right) / 2;
+    int32_t pos_y = campaign.level_description_geo != NULL ? campaign.level_description_geo->pos_y : lbDisplay.PhysicalScreenHeight - geo->height - scale_value_landview(LANDVIEW_TEXTBOX_MARGIN);
+    scroll_box_geometry_at(pos_x, pos_y, width, lines, true, geo);
 
     // Match the normal close button used by the in-game information window:
     // 30x24 pixels, positioned in the top-right of the panel.
@@ -218,7 +220,7 @@ static void landview_textbox_geometry(struct ScrollBoxGeom *geo)
     geo->close_button.bottom = geo->close_button.top + close_height;
 }
 
-static TbBool landview_point_within(const struct TbRect *rect, long pos_x, long pos_y)
+static TbBool landview_point_within(const struct TbRect *rect, int32_t pos_x, int32_t pos_y)
 {
     return (pos_x >= rect->left) && (pos_x < rect->right) && (pos_y >= rect->top) && (pos_y < rect->bottom);
 }
@@ -227,12 +229,13 @@ static void draw_landview_textbox(void)
 {
     if (landview_text_scroll.text[0] == '\0')
         return;
+    int lines = campaign.level_description_geo != NULL ? campaign.level_description_geo->lines : LANDVIEW_TEXTBOX_LINES;
     struct ScrollBoxGeom geo;
     landview_textbox_geometry(&geo);
     unsigned short flg_mem = RendererGetDrawFlags();
     RendererSetDrawFlags(0);
     landview_draw_glass_box(&geo.area);
-    draw_scroll_box_at(geo.pos_x, geo.pos_y, geo.width, LANDVIEW_TEXTBOX_LINES, true, landview_gui_remap, false);
+    draw_scroll_box_at(geo.pos_x, geo.pos_y, geo.width, lines, true, landview_gui_remap, false);
 
     struct GuiButton close_button;
     memset(&close_button, 0, sizeof(close_button));
@@ -268,8 +271,8 @@ static TbBool landview_textbox_input(void)
     box.top = geo.pos_y;
     box.right = geo.pos_x + geo.width;
     box.bottom = geo.pos_y + geo.height;
-    long mouse_x = GetMouseX();
-    long mouse_y = GetMouseY();
+    int32_t mouse_x = GetMouseX();
+    int32_t mouse_y = GetMouseY();
     TbBool over_up = landview_point_within(&geo.up_arrow, mouse_x, mouse_y);
     TbBool over_down = landview_point_within(&geo.down_arrow, mouse_x, mouse_y);
     TbBool over_close = landview_point_within(&geo.close_button, mouse_x, mouse_y);
